@@ -1,0 +1,56 @@
+{
+  "name": "use-query-guard",
+  "version": "1.0.1",
+  "description": "A router-agnostic query-string management hook for React with Zod validation",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap --clean",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "react",
+    "hook",
+    "query-params",
+    "url-params",
+    "search-params",
+    "zod",
+    "validation",
+    "typescript"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.0",
+  "peerDependencies": {
+    "react": ">=18",
+    "zod": ">=3"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^30.0.0",
+    "@types/react": "^19.1.8",
+    "eslint": "^9.31.0",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.6.2",
+    "react": ">=18",
+    "react-dom": "^19.1.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
+    "zod": "^4"
+  }
+}
