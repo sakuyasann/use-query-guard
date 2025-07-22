@@ -1,6 +1,6 @@
 {
   "name": "use-query-guard",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "A router-agnostic query-string management hook for React with Zod validation",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,7 +19,22 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap --clean",
     "test": "vitest run",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "release": "pnpm exec release-it"
+  },
+  "release-it": {
+    "git": {
+      "requireCleanWorkingDir": true
+    },
+    "npm": {
+      "publish": true
+    },
+    "hooks": {
+      "before:init": [
+        "pnpm test",
+        "pnpm build"
+      ]
+    }
   },
   "keywords": [
     "react",
@@ -56,6 +71,7 @@
     "prettier": "^3.6.2",
     "react": ">=18",
     "react-dom": "^19.1.0",
+    "release-it": "^19.0.4",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4",
