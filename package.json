@@ -31,8 +31,16 @@
     "validation",
     "typescript"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "sakuyasann",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sakuyasann/use-query-guard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sakuyasann/use-query-guard/issues"
+  },
+  "homepage": "https://github.com/sakuyasann/use-query-guard#readme",
   "packageManager": "pnpm@10.11.0",
   "peerDependencies": {
     "react": ">=18",
