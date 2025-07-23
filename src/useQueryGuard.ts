@@ -166,24 +166,33 @@ export function useQueryGuard<
   }, [search, resolver, preprocess, mode])
 
   /* ----------------------------------------------------------------
-   * 更新ヘルパ
+   * 更新ヘルパ（差分チェック付き）
    * ---------------------------------------------------------------- */
-
   const updateParams = useCallback(
     (params: UpdateArgs<Schema>) => {
+      /* 1) 現在のクエリを取得し、URLSearchParams へ ---------------- */
       const usp = new URLSearchParams(adapter.getSearch())
 
+      /* 2) 渡された params を反映 ----------------------------------- */
       Object.entries(params).forEach(([k, v]) => {
         if (v === null || v === '') {
-          // null または空文字 → 削除
-          usp.delete(k)
+          usp.delete(k) // null / 空文字 → 削除
         } else if (v !== undefined) {
-          // undefined は「キー未指定」とみなして何もしない
-          usp.set(k, String(v))
+          usp.set(k, String(v)) // それ以外 → 文字列でセット
         }
       })
 
-      adapter.setSearch(usp.toString())
+      /* 3) 変更後のクエリ文字列を生成（? を付けずに比較） ------------ */
+      // ① URLSearchParams#sort() でキー順を安定化（ES2021~ 対応）
+      usp.sort()
+      const next = usp.toString()
+
+      // ② adapter.getSearch() から先頭の ? を除いて比較
+      const current = adapter.getSearch().replace(/^\?/, '')
+      if (next === current) return // 差分無しなら何もしない
+
+      /* 4) 差分があれば更新 ----------------------------------------- */
+      adapter.setSearch(next)
     },
     [adapter]
   )
