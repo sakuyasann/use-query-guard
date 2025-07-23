@@ -76,6 +76,7 @@ export type QueryGuardOptions<
     ? (key: keyof z.infer<Schema> & string, value: string) => string
     : (key: string, value: string) => string
   adapter?: QueryGuardAdapter
+  mode?: 'strict' | 'pick'
 }
 
 /* ------------------------------------------------------------------ */
@@ -85,7 +86,12 @@ export type QueryGuardOptions<
 export function useQueryGuard<
   Schema extends ZodObject<ZodRawShape> | undefined = undefined,
 >(options?: QueryGuardOptions<Schema>) {
-  const { resolver, preprocess, adapter = browserAdapter } = options ?? {}
+  const {
+    resolver,
+    preprocess,
+    adapter = browserAdapter,
+    mode = 'pick',
+  } = options ?? {}
 
   /* -- URL 変化購読 (`useSyncExternalStore` で安定) -- */
   const search = useSyncExternalStore(
@@ -101,6 +107,7 @@ export function useQueryGuard<
    * URLSearchParams → オブジェクト化＆前処理＆Zod 検証
    * ---------------------------------------------------------------- */
   const { data, isError } = useMemo(() => {
+    /* 1) URLSearchParams を取得し文字列辞書へ ---------- */
     const usp = new URLSearchParams(search)
     const raw: Record<string, string> = {}
     usp.forEach((value, key) => {
@@ -109,43 +116,54 @@ export function useQueryGuard<
 
     setReadyTrue()
 
-    /* 1) resolver 無し → 文字列辞書返却 */
+    /* 2) resolver 無しなら丸ごと返す -------------------- */
     if (!resolver) {
-      setReadyTrue()
-      return {
-        data: raw as Record<string, string | undefined>,
-        isError: false,
-      }
+      return { data: raw as Record<string, string | undefined>, isError: false }
     }
 
-    /* 2) 各キーを型別に前変換 (Number など) */
+    /* 3) 文字列 → number など事前変換 ------------------- */
     const converted: Record<string, unknown> = {}
     for (const key of Object.keys(resolver.shape) as Array<
       keyof typeof resolver.shape
     >) {
-      const s = resolver.shape[key]
+      const schema = resolver.shape[key]
       const v = raw[key as string]
-
       if (v === undefined) continue
-
-      if (s instanceof ZodNumber) {
-        converted[key as string] = Number(v)
-      } else {
-        converted[key as string] = v
-      }
+      converted[key as string] = schema instanceof ZodNumber ? Number(v) : v
     }
 
-    /* 3) 全キー undefined 初期化 → safeParse */
+    /* 4) バリデーションモードごとに処理 ------------------ */
     const base = Object.fromEntries(
       Object.keys(resolver.shape).map((k) => [k, undefined])
-    ) as Optionalise<z.infer<NonNullable<Schema>>>
+    ) as Optionalise<z.infer<typeof resolver>>
 
-    const parsed = resolver.safeParse(converted)
-    return {
-      data: parsed.success ? { ...base, ...parsed.data } : base,
-      isError: !parsed.success,
+    if (mode === 'pick') {
+      /* ---- 部分一致モード ---- */
+      let anyError = false
+      const picked: Record<string, unknown> = {}
+
+      for (const [key, schema] of Object.entries(resolver.shape)) {
+        const val = converted[key]
+        if (val === undefined) continue
+
+        const r = (schema as z.ZodTypeAny).safeParse(val)
+        if (r.success) picked[key] = r.data
+        else anyError = true
+      }
+
+      return {
+        data: { ...base, ...picked },
+        isError: anyError,
+      }
+    } else {
+      /* ---- 完全一致モード ---- */
+      const parsed = resolver.safeParse(converted)
+      return {
+        data: parsed.success ? { ...base, ...parsed.data } : base,
+        isError: !parsed.success,
+      }
     }
-  }, [search, resolver, preprocess])
+  }, [search, resolver, preprocess, mode])
 
   /* ----------------------------------------------------------------
    * 更新ヘルパ
