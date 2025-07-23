@@ -1,6 +1,9 @@
 
 # useQueryGuard
 
+[![npm version](https://img.shields.io/npm/v/use-query-guard.svg?style=flat)](https://www.npmjs.com/package/use-query-guard)
+[![GitHub](https://img.shields.io/badge/github-repo-blue?logo=github)](https://github.com/sakuyasann/use-query-guard)
+
 A **router‑agnostic query‑string management hook** for React.
 Read, validate, and update URL parameters in **React‑Router, Next.js, Remix, or any vanilla SPA** with one shared API.
 
@@ -135,6 +138,7 @@ function useQueryGuard<
     value: string
   ) => string
   adapter?: QueryGuardAdapter
+  mode?: 'pick' | 'strict'
 }): {
   data: S extends z.ZodObject<any>
     ? { [K in keyof z.infer<S>]?: z.infer<S>[K] }
@@ -143,6 +147,27 @@ function useQueryGuard<
   isError: boolean
   updateParams: (p: UpdateArgs<S>) => void
 }
+```
+
+### オプション: `mode`
+
+- `mode: 'pick'`（デフォルト）: スキーマに一致するキーだけ部分的にパースし、1つでも不正値があれば `isError: true` になるが、他の値は取得できる
+- `mode: 'strict'`: 全てのキーがスキーマに完全一致しないと `isError: true` となり、`data` も空になる
+
+#### 例
+
+```ts
+// pickモード（デフォルト）
+const { data, isError } = useQueryGuard({
+  resolver: schema,
+  mode: 'pick',
+})
+
+// strictモード
+const { data, isError } = useQueryGuard({
+  resolver: schema,
+  mode: 'strict',
+})
 ```
 
 ---
