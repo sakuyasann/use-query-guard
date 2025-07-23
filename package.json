@@ -1,6 +1,6 @@
 {
   "name": "use-query-guard",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A router-agnostic query-string management hook for React with Zod validation",
   "type": "module",
   "main": "./dist/index.js",
